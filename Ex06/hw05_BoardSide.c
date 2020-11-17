@@ -144,7 +144,7 @@ int main(void) {
                     }   // end compare with Button Status command
 
                     else
-                    {   OutString("Wrong command\r\n");   } // default case
+                    {   OutString("Wrong command\r\n");   }
                 }       // end command detected case
             }           // end more than 1 character in buffer case
         }               // end character received case

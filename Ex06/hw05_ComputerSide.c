@@ -134,11 +134,13 @@ int main(int argc, char *argv[])
 
             case 'c':
             {       // set chBuffIn to NULL (entire array is NULL chars) // n is number of bytes read
-
                 printf ("Enter your custom command: ");
-                if (set) { (*set)(1); }
+
+                if (set) { (*set)(1); }     /* reset terminal to normal mode for scanf */
+
                 scanf("%s", chCmd_CUSTOM_COMMAND);
-                void (*set)(int reset) = 0;
+
+                void (*set)(int reset) = 0; /* set terminal back to 'not waiting for enter' mode */
                 set = call_termios;
                 if (set) { (*set)(0); }
 
@@ -153,7 +155,6 @@ int main(int argc, char *argv[])
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
                 printf("%s\n", chBuffIn);
-
             }
                 break;
 
