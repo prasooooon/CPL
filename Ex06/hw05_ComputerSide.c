@@ -96,7 +96,6 @@ int main(int argc, char *argv[])
                 sprintf(chBuffOut, "%s\r\n", chCmd_LED_ON);
                 iBuffOutSize = strlen(chBuffOut);
 
-                // printf("LED ON size (8)  %d  %s\n", iBuffOutSize, chBuffOut);
                 int n_written = write( hSerial, chBuffOut, iBuffOutSize);
             }
                 break;
@@ -108,7 +107,6 @@ int main(int argc, char *argv[])
                 iBuffOutSize = strlen(chBuffOut);
 
                 int n_written = write( hSerial, chBuffOut, iBuffOutSize);
-
             }
                 break;
 
@@ -124,7 +122,14 @@ int main(int argc, char *argv[])
 
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
-                printf("Received data: %s\n", chBuffIn);
+                chBuffIn [n - 2] = 0;
+
+                if (strcmp("BUTTON:PRESSED", chBuffIn) == 0) {
+                    printf("Nucleo claims the button is up!");
+                }
+                else if (strcmp("BUTTON:RELEASED", chBuffIn) == 0) {
+                    printf("Nucleo claims the button is down!");
+                }
             }
                 break;
 
@@ -150,7 +155,11 @@ int main(int argc, char *argv[])
 
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
-                printf("%s\n", chBuffIn);
+                chBuffIn [n - 2] = 0;
+                if (strcmp("Wrong command", chBuffIn) == 0) {
+                    printf("Nucleo claims it does not know the command.");
+                }
+
             }
                 break;
 

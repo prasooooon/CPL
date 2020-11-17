@@ -82,7 +82,7 @@ int main(void) {
     while (1) {
         // code to change LED status from onboard user button
         btData = GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13);
-        if (!btData)
+        if (!btData)        // pin at HIGH
         {
             btSendReset = 0;
             if (btSend == 0)
@@ -90,7 +90,7 @@ int main(void) {
                 GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_SET);
                 btSend = 1;
             }
-        } else
+        } else              // pin at LOW
         {
             btSend = 0;
             if (btSendReset == 0)
@@ -117,7 +117,7 @@ int main(void) {
                 if ((btInputBuffer[iItemsInBuffer - 1] == '\n') &&
                     (btInputBuffer[iItemsInBuffer - 2] == '\r')) { /* commands end with \r\n characters */
 
-                    btInputBuffer[iItemsInBuffer - 2] = 0;
+                    btInputBuffer[iItemsInBuffer - 2] = 0;          /* remove \r character from the end of command */
                     iItemsInBuffer = 0;
 
                     if (strcmp("LED ON", btInputBuffer) == 0) {
