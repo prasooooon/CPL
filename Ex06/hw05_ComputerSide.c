@@ -7,13 +7,14 @@
 #include <fcntl.h>      // File controls like O_RDWR from open function
 #include <unistd.h>     // write(), read(), open() etc.
 
+#define cBUF_SIZE 255
 void call_termios(int reset);
 
 char * g_strArrMenu[] =
         {       "==Program Menu==",
                 "Item 'o': LED ON",
                 "Item 'f': LED OFF",
-                "Item 'r': Button State",
+                "Item 'b': Button State",
                 "Item 'c': Enter a custom command.",
                 "Item 'e': Exit"
         };
@@ -21,10 +22,11 @@ char * g_strArrMenu[] =
 char chCmd_LED_ON[]  = {'L', 'E', 'D', ' ', 'O', 'N', '\0'};    // both ways get same result bc strings are 1D arrays in C
 char chCmd_LED_OFF[] = "LED OFF";                               // '\0' character will automatically be added by compiler
 char chCmd_BUTTON_STATUS[] = "BUTTON:STATUS?";
+char chCmd_CUSTOM_COMMAND[cBUF_SIZE];
 
-#define cBUF_SIZE 255
 char chBuffOut[cBUF_SIZE];
 char chBuffIn[cBUF_SIZE];
+
 
 void print_menu(void)
 {
@@ -32,8 +34,7 @@ void print_menu(void)
     {
         printf("%s\n", g_strArrMenu[iCnt]);
     }
-    printf("Selection: ");
-    printf(" \n");
+    printf("Selection: \n");
 }
 
 int main(int argc, char *argv[])
@@ -86,11 +87,11 @@ int main(int argc, char *argv[])
     set = call_termios;
     if (set) { (*set)(0); }
 
+    print_menu();
+
     while (bContinue)
     {
-        print_menu();
         c = getchar();
-
         switch (c) {
             case 'o':
             {
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
             }
                 break;
 
-            case 'r':
+            case 'b':
             {
                 int iBuffOutSize = 0;
                 sprintf(chBuffOut, "%s\r\n", chCmd_BUTTON_STATUS);
@@ -124,19 +125,31 @@ int main(int argc, char *argv[])
 
                 usleep (1000*1000); // time in nanoseconds
 
-                char chArrBuf [256];
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
-                printf("Recieved data (%d) %s\n", n, chBuffIn);
+                printf("Recieved data: %s\n", chBuffIn);
 
             }
                 break;
 
-            case 'w':
-            {
-                memset (chBuffIn, '\0', cBUF_SIZE);
-                int n = read( hSerial, chBuffIn , cBUF_SIZE);
-                printf("Recieved data (%d) %s\n", n, chBuffIn);
+            case 'c':
+            {       // set chBuffIn to NULL (entire array is NULL chars) // n is number of bytes read
+
+                printf ("Enter your custom command: ");
+                scanf("%s", chCmd_CUSTOM_COMMAND);
+
+                int iBuffOutSize = 0;
+                sprintf(chBuffOut, "%s\r\n", chCmd_CUSTOM_COMMAND);
+                iBuffOutSize = strlen(chBuffOut);
+
+                int n_written = write( hSerial, chBuffOut, iBuffOutSize);
+
+                usleep (1000*1000); /* wait for nucleo to reply (time in nanoseconds) */
+
+                memset (chBuffIn , '\0', cBUF_SIZE);
+                int n = read( hSerial, chBuffIn , cBUF_SIZE );
+                printf("%s\n", chBuffIn);
+
             }
                 break;
 
