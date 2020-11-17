@@ -81,29 +81,24 @@ int main(void) {
 
     while (1) {
         // code to change LED status from onboard user button
-        /*
-       btData = GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13);
-       if (!btData)
-       {
-           btSendReset = 0;
-           if (btSend == 0)
-           {
-               // OutString("Button pressed LED on\r\n");
-               // GPIO_ToggleBits(GPIOA, GPIO_Pin_5);
-               GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_SET);
-               btSend = 1;
-           }
-       } else
-       {
-           btSend = 0;
-           if (btSendReset == 0)
-           {
-               GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_RESET);
-               // OutString("Button pressed LED off\r\n");
-               btSendReset = 1;
-           }
-       }
-*/
+        btData = GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13);
+        if (!btData)
+        {
+            btSendReset = 0;
+            if (btSend == 0)
+            {
+                GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_SET);
+                btSend = 1;
+            }
+        } else
+        {
+            btSend = 0;
+            if (btSendReset == 0)
+            {
+                GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_RESET);
+                btSendReset = 1;
+            }
+        }
 
         uint16_t Data;
         if (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)// if character received

@@ -39,16 +39,13 @@ void print_menu(void)
 
 int main(int argc, char *argv[])
 {
-    if (argc > 1) {
-            char *port = argv[1];
-            printf("%s\n", port);
-        }
-    else {
+    if (argc <= 1)
+    {
         fprintf(stderr, "Main: serial port path required\n");
         exit(1);
     }
 
-    int hSerial = open( "/dev/ttyACM0", O_RDWR| O_NONBLOCK | O_NDELAY );    // serial port open
+    int hSerial = open( argv[1], O_RDWR| O_NONBLOCK | O_NDELAY );    // serial port open
     if (hSerial < 0) {  printf("tcgetattr: %s\n", strerror(errno)); }
 
     fcntl(hSerial, F_SETFL, 0);
@@ -127,8 +124,7 @@ int main(int argc, char *argv[])
 
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
-                printf("Recieved data: %s\n", chBuffIn);
-
+                printf("Received data: %s\n", chBuffIn);
             }
                 break;
 
