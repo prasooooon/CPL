@@ -136,7 +136,11 @@ int main(int argc, char *argv[])
             {       // set chBuffIn to NULL (entire array is NULL chars) // n is number of bytes read
 
                 printf ("Enter your custom command: ");
+                if (set) { (*set)(1); }
                 scanf("%s", chCmd_CUSTOM_COMMAND);
+                void (*set)(int reset) = 0;
+                set = call_termios;
+                if (set) { (*set)(0); }
 
                 int iBuffOutSize = 0;
                 sprintf(chBuffOut, "%s\r\n", chCmd_CUSTOM_COMMAND);
