@@ -26,14 +26,13 @@ char chCmd_BUTTON_STATUS[] = "BUTTON:STATUS?";
 char chBuffOut[cBUF_SIZE];
 char chBuffIn[cBUF_SIZE];
 
-void print_menu(int * pSelection)
+void print_menu(void)
 {
-    char chArrSelection[BUFSIZ];    // BUFSIZ is recommended size of input buffer defined in stdio.h
-//    int iSelection;
-
+    for (int iCnt = 0; iCnt < (sizeof(g_strArrMenu)/sizeof(char*)); iCnt++ )
+    {
+        printf("%s\n", g_strArrMenu[iCnt]);
+    }
     printf("Selection: ");
-    scanf("%s", chArrSelection);
-    *pSelection = chArrSelection[0];
     printf(" \n");
 }
 
@@ -89,7 +88,8 @@ int main(int argc, char *argv[])
 
     while (bContinue)
     {
-//        print_menu(&iSelection);
+        print_menu();
+
         switch (getchar()) {
             case 'o':
             {
