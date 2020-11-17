@@ -89,8 +89,9 @@ int main(int argc, char *argv[])
     while (bContinue)
     {
         print_menu();
+        c = getchar();
 
-        switch (getchar()) {
+        switch (c) {
             case 'o':
             {
                 int iBuffOutSize = 0;
@@ -155,6 +156,9 @@ int main(int argc, char *argv[])
 
     close(hSerial);  // close serial port
 
+    if (set) {
+        (*set)(1); //revert to the original mode
+    }
     return 0;
 }
 
