@@ -1,3 +1,4 @@
+/* I have tried to put descriptions next to every line in my own words */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #include <unistd.h>     // write(), read(), open() etc.
 
 #define cBUF_SIZE 255
-void call_termios(int reset);
+void call_termios(int reset);       /* prototype of function switching terminal to 'don't wait for enter' mode */
 
 char * g_strArrMenu[] =
         {       "==Program Menu==",
@@ -19,16 +20,15 @@ char * g_strArrMenu[] =
                 "Item 'e': Exit"
         };
 
-char chCmd_LED_ON[]  = {'L', 'E', 'D', ' ', 'O', 'N', '\0'};    // both ways get same result bc strings are 1D arrays in C
-char chCmd_LED_OFF[] = "LED OFF";                               // '\0' character will automatically be added by compiler
+char chCmd_LED_ON[]  = {'L', 'E', 'D', ' ', 'O', 'N', '\0'};    /* both ways get same result bc strings are 1D arrays in C */
+char chCmd_LED_OFF[] = "LED OFF";                               /* '\0' character will automatically be added by compiler */
 char chCmd_BUTTON_STATUS[] = "BUTTON:STATUS?";
-char chCmd_CUSTOM_COMMAND[cBUF_SIZE];
+char chCmd_CUSTOM_COMMAND[cBUF_SIZE];                           /* Size of custom command will be limited to 256 bits */
 
 char chBuffOut[cBUF_SIZE];
 char chBuffIn[cBUF_SIZE];
 
-
-void print_menu(void)
+void print_menu(void)   /* could probably be replaced by single print statement */
 {
     for (int iCnt = 0; iCnt < (sizeof(g_strArrMenu)/sizeof(char*)); iCnt++ )
     {
@@ -39,21 +39,22 @@ void print_menu(void)
 
 int main(int argc, char *argv[])
 {
-    if (argc <= 1)
+    if (argc <= 1)  /* check if parameter given */
     {
         fprintf(stderr, "Main: serial port path required\n");
         exit(1);
     }
 
-    int hSerial = open( argv[1], O_RDWR| O_NONBLOCK | O_NDELAY );    // serial port open
-    if (hSerial < 0) {  printf("tcgetattr: %s\n", strerror(errno)); }
+    int hSerial = open( argv[1], O_RDWR| O_NONBLOCK | O_NDELAY );     /* open serial port */
+    if (hSerial < 0) {  printf("Error from open: %s\n", strerror(errno)); } /* check for errors in opening */
 
     fcntl(hSerial, F_SETFL, 0);
 
     int iRetVal;
-    struct termios o_tty;   // structure calls information about serial port settings
+    struct termios o_tty;               /* structure calls information about serial port settings */
     memset (&o_tty, 0, sizeof(o_tty) );
-    iRetVal = tcgetattr (hSerial , &o_tty);
+    iRetVal = tcgetattr (hSerial , &o_tty);  /* write the existing configuration of the serial port */
+    // if (tcgetattr(hSerial, &o_tty) != 0) { printf("tcgetattr: %s\n", strerror(errno)); } // check for errors while writing
 
     /* set in/out baud rate non-integer is unix-compliant*/
     cfsetispeed(&o_tty, B9600);
@@ -118,10 +119,10 @@ int main(int argc, char *argv[])
 
                 int n_written = write( hSerial, chBuffOut, iBuffOutSize);
 
-                usleep (1000*1000); // time in nanoseconds
+                usleep (1000*1000);                             // wait for nucleo to reply (time in nanoseconds)
 
-                memset (chBuffIn , '\0', cBUF_SIZE);
-                int n = read( hSerial, chBuffIn , cBUF_SIZE );
+                memset (chBuffIn , '\0', cBUF_SIZE);            // set chBuffIn to NULL (entire array is NULL chars)
+                int n = read( hSerial, chBuffIn , cBUF_SIZE );  // n is number of bytes read
                 chBuffIn [n - 2] = 0;
 
                 if (strcmp("BUTTON:PRESSED", chBuffIn) == 0) {
@@ -134,7 +135,7 @@ int main(int argc, char *argv[])
                 break;
 
             case 'c':
-            {       // set chBuffIn to NULL (entire array is NULL chars) // n is number of bytes read
+            {
                 printf ("Enter your custom command: ");
 
                 if (set) { (*set)(1); }     /* reset terminal to normal mode for scanf */
@@ -155,9 +156,11 @@ int main(int argc, char *argv[])
 
                 memset (chBuffIn , '\0', cBUF_SIZE);
                 int n = read( hSerial, chBuffIn , cBUF_SIZE );
+
                 chBuffIn [n - 2] = 0;
+
                 if (strcmp("Wrong command", chBuffIn) == 0) {
-                    printf("Nucleo claims it does not know the command.");
+                    printf("Nucleo claims it does not know the command.\n");
                 }
 
             }
@@ -171,7 +174,7 @@ int main(int argc, char *argv[])
 
             default:
             {
-                printf("wrong option\n");
+                printf("Wrong Option\n");
             }
                 break;
         }   // end switch case
