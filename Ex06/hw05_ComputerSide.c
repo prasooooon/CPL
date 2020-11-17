@@ -2,12 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include <termios.h>    // POSIX terminal control definitions
 #include <fcntl.h>      // File controls like O_RDWR from open function
 #include <unistd.h>     // write(), read(), open() etc.
 
+void call_termios(int reset);
+
 char * g_strArrMenu[] =
-        {
+        {       "==Program Menu==",
                 "Item 'o': LED ON",
                 "Item 'f': LED OFF",
                 "Item 'r': Button State",
@@ -26,13 +29,8 @@ char chBuffIn[cBUF_SIZE];
 void print_menu(int * pSelection)
 {
     char chArrSelection[BUFSIZ];    // BUFSIZ is recommended size of input buffer defined in stdio.h
-    int iSelection;
+//    int iSelection;
 
-    printf("==Program Menu==\n");
-    for (int iCnt = 0; iCnt < (sizeof(g_strArrMenu)/sizeof(char*)); iCnt++ )
-    {
-        printf("%s\n", g_strArrMenu[iCnt]);
-    }
     printf("Selection: ");
     scanf("%s", chArrSelection);
     *pSelection = chArrSelection[0];
@@ -41,8 +39,17 @@ void print_menu(int * pSelection)
 
 int main(int argc, char *argv[])
 {
+    if (argc > 1) {
+            char *port = argv[1];
+            printf("%s\n", port);
+        }
+    else {
+        fprintf(stderr, "Main: serial port path required\n");
+        exit(1);
+    }
+
     int hSerial = open( "/dev/ttyACM0", O_RDWR| O_NONBLOCK | O_NDELAY );    // serial port open
-//    if (hSerial < 0) {  printf("tcgetattr: %s\n", strerror(errno)); }
+    if (hSerial < 0) {  printf("tcgetattr: %s\n", strerror(errno)); }
 
     fcntl(hSerial, F_SETFL, 0);
 
@@ -69,17 +76,21 @@ int main(int argc, char *argv[])
     o_tty.c_cflag &= ~CSIZE;
     o_tty.c_cflag |= CS8;
 
-//    if ( tcsetattr(hSerial, TCSANOW, &o_tty) != 0 ) { printf("tcsetattr: %s\n", strerror(errno)); }
+    if ( tcsetattr(hSerial, TCSANOW, &o_tty) != 0 ) { printf("tcsetattr: %s\n", strerror(errno)); }
     tcsetattr(hSerial, TCSANOW, &o_tty);
 
     int bContinue = 1;
     char strInput[cBUF_SIZE];
-    int iSelection;
+    int iSelection, c;
+
+    void (*set)(int reset) = 0;
+    set = call_termios;
+    if (set) { (*set)(0); }
 
     while (bContinue)
     {
-        print_menu(&iSelection);
-        switch (iSelection) {
+//        print_menu(&iSelection);
+        switch (getchar()) {
             case 'o':
             {
                 int iBuffOutSize = 0;
@@ -147,3 +158,17 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void call_termios(int reset)
+{
+    static struct termios tio, tioOld;
+    tcgetattr(STDIN_FILENO, &tio);
+    if (reset) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &tioOld);
+    } else {
+        tioOld = tio; //backup
+        cfmakeraw(&tio);
+        tio.c_lflag &= ~ECHO; // assure echo is disabled
+        tio.c_oflag |= OPOST; // enable output postprocessing
+        tcsetattr(STDIN_FILENO, TCSANOW, &tio);
+    }
+}
