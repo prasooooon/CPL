@@ -11,10 +11,14 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
+#include <termios.h>
+#include <ctype.h>      // for isprint()
 
 void* comm (void *pInParam);
 void print_menu (int * pSelection);
 void printBuffer(char *str, int iLen);
+void call_termios(int reset);
+void printSelection(char *strInfo);
 
 char * g_strArrMenu[] =
         {       "Item 'o': LED ON",
@@ -41,7 +45,7 @@ typedef struct tSerialData
 
     int hSerial;
 
-}   tSerialData;
+} tSerialData;
 
 bool quit = false;
 
@@ -54,13 +58,17 @@ int main (int argc, char * argv[])
     oSerialData.hSerial = hSerial;
     pthread_create(&oSerialData.oCom, NULL, comm, (void *)&oSerialData );
 
+    call_termios(0);
+
     int bContinue = 1;
     char strInput[255];
     int iSelection;
 
+    print_menu(&iSelection);
+
     while (bContinue)
     {
-        print_menu(&iSelection);
+        iSelection = getchar();
         switch(iSelection)
         {
             case 'o':
@@ -93,14 +101,14 @@ int main (int argc, char * argv[])
 
                 memset (chBuffIn , '\0', cBUF_SIZE);            // set chBuffIn to NULL (entire array is NULL chars)
                 int n = serial_read( hSerial, chBuffIn , cBUF_SIZE );  // n is number of bytes read
-                printf ("Received data (%d) %s\n", n, chBuffIn);
+//                printf ("Received data (%d) %s\n", n, chBuffIn);
             }   break;
 
             case 'w':
             {
                 memset(chBuffIn, '\0', cBUF_SIZE);
                 int n = serial_read( hSerial, chBuffIn , cBUF_SIZE );
-                printf ("Received data (%d) %s\n", n, chBuffIn);
+//                printf ("Received data (%d) %s\n", n, chBuffIn);
             }
 
             case 'e':
@@ -116,6 +124,7 @@ int main (int argc, char * argv[])
     }
     pthread_join(oSerialData.oCom, NULL);
     close(hSerial);
+    call_termios(1);
 }
 
 void print_menu (int * pSelection)
@@ -129,11 +138,11 @@ void print_menu (int * pSelection)
         printf("%s\n", g_strArrMenu[iCnt]);
     }
 
-    printf("Selection: ");
-    scanf("%s", chArrSelection);
-    *pSelection = chArrSelection[0];
+//    printf("Selection: ");
+//    scanf("%s", chArrSelection);
+//    *pSelection = chArrSelection[0];
     printf("\n");
-
+    printSelection(NULL);
 }
 void printBuffer(char *str, int iLen)
 {
@@ -175,19 +184,20 @@ void* comm (void *pInParam)
                 }
                 if ( pSerialData->cmdBuffLen > 1)
                 {
-//                    printf ("Command buffer detected(%d) %s\n", pSerialData->cmdBuffLen, pSerialData->chCmdBuff);
-//                    printBuffer(pSerialData->chCmdBuff, pSerialData->cmdBuffLen);
-
                     if ((pSerialData->chCmdBuff[pSerialData->cmdBuffLen - 1] == '\n') &&
                         (pSerialData->chCmdBuff[pSerialData->cmdBuffLen - 2] == '\r'))
                     {
-                        printf ("Command detected(%d) %s\n", pSerialData->cmdBuffLen, pSerialData->chCmdBuff);
-
                         if (strstr(pSerialData->chCmdBuff, "Welcome to Nucleo") != NULL)
-                        {
-                            printf ("Nucleo was reset\n");
-                        }
-                            pSerialData->cmdBuffLen = 0;
+                        { printSelection("Nucleo reset"); }
+
+                        if (strstr(pSerialData->chCmdBuff, "BUTTON:PRESSED\r\n") != NULL)
+                        { printSelection("Button pressed."); }
+
+                        if (strstr(pSerialData->chCmdBuff, "BUTTON:RELEASED\r\n") != NULL)
+                        { printSelection("Button released."); }
+
+                        fflush(stdout);
+                        pSerialData->cmdBuffLen = 0;
                     }
                 }
             }
@@ -203,4 +213,37 @@ void* comm (void *pInParam)
 //        pthread_mutex_unlock(&mtx);
     }
     return 0;
+}
+
+void printSelection(char *strInfo)
+{
+    char strLine[] = "Info:                         | Enter option: ";
+    if (strInfo != NULL)
+    {
+        char cByte;
+        for (int iCnt = 0; iCnt < 23; iCnt++)
+        {
+            cByte = strInfo[iCnt];
+            if (isprint(cByte))
+            {
+                strLine[6 + iCnt] = cByte;
+            }
+            else { break; }
+        }
+    }
+    printf("\r%s", strLine);
+}
+
+void call_termios(int reset)
+{
+    static struct termios tio, tioOld;      // tioOld = tio"OLD"
+    tcgetattr(STDIN_FILENO, &tio);
+    if (reset) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &tioOld);
+    } else {
+        tioOld = tio; //backup
+        cfmakeraw(&tio);
+        tio.c_oflag |= OPOST; // enable output postprocessing
+        tcsetattr(STDIN_FILENO, TCSANOW, &tio);
+    }
 }
