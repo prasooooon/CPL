@@ -10,15 +10,16 @@ int serial_init ( char * strDevName)
     int hSerial = open(strDevName, O_RDWR | O_NONBLOCK | O_NDELAY);
     fcntl(hSerial, F_SETFL, 0);
 
-    if (hSerial <= 0)
+    if (hSerial <= 0) /* check for opening errors */
     {
-        printf("serial\n");
+        printf("Error from open: %s\n", strerror(errno));
         return -1;
     }
 
     struct termios o_tty;                       /* structure calls information about serial port settings */
     memset (&o_tty, 0, sizeof(o_tty) );
     int iRetVal = tcgetattr (hSerial , &o_tty); /* write the existing configuration of the serial port */
+
     /* set in/out baud rate non-integer is unix-compliant*/
     cfsetispeed(&o_tty, B9600);
     cfsetospeed(&o_tty, B9600);
@@ -27,9 +28,6 @@ int serial_init ( char * strDevName)
     o_tty.c_cflag |= (CLOCAL | CREAD);                  /* control modes */
     o_tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);   /* local modes */
     o_tty.c_oflag &= ~OPOST;                            /* output modes */
-
-//    o_tty.c_iflag = 0;
-//    o_tty.c_iflag &= ~(INLCR | ICRNL);
 
     /* read() will block until either any amount of data is given, or the timeout (VTIME = 10 deciSeconds) occurs */
     o_tty.c_cc[VMIN] = 0;                               /* special characters */

@@ -1,8 +1,9 @@
 CC:=clang										# compiler
 # CFLAGS+=-O2									  # compiler flags, this is optimization level 2
 LDFLAGS+=-lpthread
+LDFLAGS+=-lrt
 OBJS=$(patsubst %.c,%.o,$(wildcard *.c))		# search for all .c files. patsubst creates .o files with same names
-TARGET=hw6
+TARGET=dwivepra
 
 bin: $(TARGET)									# first/default target
 
