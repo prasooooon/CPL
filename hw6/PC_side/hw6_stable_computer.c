@@ -80,8 +80,6 @@ int main (int argc, char * argv[])
     }
     int hSerial = serial_init( argv[1] );     /* open serial port */
 
-    pthread_mutex_init(&mtx, NULL);
-
     tSerialData oSerialData;
     oSerialData.hSerial = hSerial;
     pthread_create(&oSerialData.oCom, NULL, comm, (void *)&oSerialData);   // create communication thread
