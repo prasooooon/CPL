@@ -80,7 +80,7 @@ int main(void) {
     int btSend, btSendReset, iItemsInBuffer = 0;
     char btInputBuffer[255];
     uint16_t o = 111;   // 111 is ascii o, assuming gtkterm sends ascii chars
-    uint16_t c = 99;
+    uint16_t c = 99;    //    uint16_t c = 'c'; also works
     uint16_t r = 114;
 
     while (1)
