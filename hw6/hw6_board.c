@@ -93,12 +93,11 @@ int main(void) {
         } else              // pin at LOW
         {
             btSend = 0;
-            if (btSendReset == 0)
-            {
+            if (btSendReset == 0) {
                 GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_RESET);
                 btSendReset = 1;
             }
-        }
+        } // END code to change LED status from onboard user button
 
         uint16_t Data;
         if (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)// if character received

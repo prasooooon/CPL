@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
    void* (*thr_functions[])(void*) = { input_thread, output_thread, alarm_thread };
 
-   pthread_t threads[NUM_THREADS];
+   pthread_t threads[NUM_THREADS];  // array for references to created functions
    pthread_mutex_init(&mtx, NULL); // initialize mutex with default attributes
    pthread_cond_init(&cond, NULL); // initialize condition variable with default attributes
 

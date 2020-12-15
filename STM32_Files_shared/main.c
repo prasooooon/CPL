@@ -1,4 +1,4 @@
-
+//
 //  ******************************************************************************
 //  @file    main.c
 //  @author  CPL (Pavel Paces, based on STM examples and HAL library)
@@ -26,7 +26,7 @@
 #define I2Cx_CLK_ENABLE()               __HAL_RCC_I2C1_CLK_ENABLE()
 #define I2Cx_SDA_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOB_CLK_ENABLE()
 #define I2Cx_SCL_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOB_CLK_ENABLE()
- 
+
 #define I2Cx_FORCE_RESET()              __HAL_RCC_I2C1_FORCE_RESET()
 #define I2Cx_RELEASE_RESET()            __HAL_RCC_I2C1_RELEASE_RESET()
 */
@@ -227,7 +227,7 @@ void assert_failed(uint8_t* file, uint32_t line)
 {
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
- 
+
   /* Infinite loop */
   while (1)
   {
@@ -559,7 +559,7 @@ void main(void)
 
 #if (TFTSHIELD_VERSION == 1)
     if(TFT_ShieldDetect() == SHIELD_DETECTED) {
- 
+
     (void)BSP_JOY_Init();
 
 #elif (TFTSHIELD_VERSION == 2)
@@ -598,7 +598,6 @@ void main(void)
     uiDispCentX = BSP_LCD_GetXSize()/2;
     uiDispCentY = BSP_LCD_GetYSize()/2;
 
-    //
     // some drawings
     BSP_LCD_Clear( LCD_COLOR_WHITE );
 //    BSP_LCD_DrawLine( 10, 10, 128-10, 10 );
@@ -606,45 +605,36 @@ void main(void)
 //    BSP_LCD_SetTextColor( LCD_COLOR_RED );
 //    BSP_LCD_DisplayStringAtLine( 1, (uint8_t *)" Welcome to Nucleo! " );
 
-    char btInputBuffer[11][17]; // single memory block consisting of an array of 17 characters, and an array of 10 of those
-    // magic numbers, bad practice
-    int iCharBuffer = 0;
-    int lineNumber = 0;
-    memset (btInputBuffer , '\0', sizeof(btInputBuffer));            // set input buffer to NULL (entire array is NULL chars)
+    char btInputBuffer[cBUF_SIZE]; // single memory block consisting of an array of 17 characters, and an array of 10 of those
+    int iItemsInBuffer = 0;
 
     while(1) // main loop
     {
         //
         // Receive serial data
 
-        oRecvStatus = HAL_UART_Receive( &hUART2, chArr, 1, 100 );
+        oRecvStatus = HAL_UART_Receive( &hUART2, chArr, 1, 100);    // character recieved
         if( oRecvStatus == HAL_OK )
         {
             uiSerRecv = chArr[0];
+            btInputBuffer[iItemsInBuffer] = (char *)uiSerRecv;
 
-            if ( (uiSerRecv != 0xD) && (uiSerRecv != 0x8) ) {
-                if (iCharBuffer <= 17) {
-                    btInputBuffer[lineNumber][iCharBuffer] = chArr[0];
-                    iCharBuffer++;      // stay in same line, move on to next character space
-                }
+            OutString((char *) chArr);
 
-                if (iCharBuffer > 17)    // if more than 17 chars on one line
-                {
-                    iCharBuffer = 0;
-                    lineNumber++;           // move to new line
-                    if (lineNumber > 11)    // if out of new lines
-                    {
-                        lineNumber = 0;
-                        memset (btInputBuffer , '\0', sizeof(btInputBuffer));   // reset display if out of new lines
-                        BSP_LCD_Clear(LCD_COLOR_WHITE);
+            if (iItemsInBuffer > 1) {                               /* more than one character in buffer */
+
+                if ((btInputBuffer[iItemsInBuffer - 1] == '\n') &&
+                    (btInputBuffer[iItemsInBuffer - 2] == '\r')) {  /* commands end with \r\n characters */
+
+                    btInputBuffer[iItemsInBuffer - 2] = 0;          /* remove \r character from the end of command */
+                    iItemsInBuffer = 0;
+
+                    if (strcmp("*IDN?", btInputBuffer) == 0) {
+                        OutString("Identification command read\n");
                     }
+
                 }
-
-                BSP_LCD_SetFont( &Font12 );
-                BSP_LCD_SetTextColor( LCD_COLOR_BLACK );
-                BSP_LCD_DisplayStringAtLine( lineNumber + 1, (uint8_t *)btInputBuffer[lineNumber]);
             }
-
         } // END if( oRecvStatus == HAL_OK )
 
         //
@@ -684,32 +674,9 @@ void main(void)
 
         } // end switch( oJoyState )
 
-        //
-        // Button reading - the button is hidden under the display
-        // uiButtState = BSP_PB_GetState( BUTTON_USER );
-
-        //
-        // Timing - second counter
-        /*
- 
-        if( (HAL_GetTick() - uiTicks) > 1000)
-        {
-            uint8_t chArr[40];
-            uiTicks = HAL_GetTick();
-            uiSec++;
- 
-            BSP_LCD_SetFont( &Font20 );
-            BSP_LCD_SetTextColor( LCD_COLOR_RED );
-            sprintf( (char *)chArr, (char *)"  %d   ", (int)uiSec );
-            BSP_LCD_DisplayStringAtLine( 14, chArr);
-        } // END if( (HAL_GetTick() - uiTicks) > 1000)
-        */
-
         if (uiSerRecv == 0xD)   // if enter pressed from serial terminal
         {
             memset (btInputBuffer , '\0', sizeof(btInputBuffer));           // clear printing buffer
-            iCharBuffer = 0;
-            lineNumber = 0;
 
             int iResult;
             char chArrTmpData[] = "DRAW:CLEAR";
@@ -723,5 +690,4 @@ void main(void)
         } // END enter pressed case
 
     } // END while(1)
-
 } // END main
