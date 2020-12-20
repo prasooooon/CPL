@@ -29,9 +29,9 @@ int serial_init ( char * strDevName)
     o_tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);   /* local modes */
     o_tty.c_oflag &= ~OPOST;                            /* output modes */
 
-    /* read() will block until either any amount of data is given, or the timeout (VTIME = 10 deciSeconds) occurs */
-    o_tty.c_cc[VMIN] = 0;                               /* special characters */
-    o_tty.c_cc[VTIME] = 10;
+    /* read() will block until either any amount of data is given, or the timeout (VTIME = 50 deciSeconds) occurs */
+    o_tty.c_cc[VMIN] = 255;                               /* special characters */
+    o_tty.c_cc[VTIME] = 50;
 
     o_tty.c_cflag &= ~PARENB;
     o_tty.c_cflag &= ~CSTOPB;
@@ -52,7 +52,6 @@ int serial_close ( int hSerial)
 
 int serial_write ( int hSerial, char * chBuff, int iLen)
 {
-//    printf("LED ON size (8) %d %s\n", iLen, chBuff);
     int n_written = write(hSerial, chBuff, iLen);
     return n_written;
 }

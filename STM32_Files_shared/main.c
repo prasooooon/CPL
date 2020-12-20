@@ -610,22 +610,26 @@ void main(void)
 
     while(1) // main loop
     {
-        //
-        // Receive serial data
 
-        oRecvStatus = HAL_UART_Receive( &hUART2, chArr, 1, 100);    // character recieved
+        oRecvStatus = HAL_UART_Receive( &hUART2, chArr, 1, 100);    // character received
         if( oRecvStatus == HAL_OK )
         {
-            uiSerRecv = chArr[0];
-            btInputBuffer[iItemsInBuffer] = (char *)uiSerRecv;
+            HAL_UART_Transmit(&hUART2, chArr, 1, 100);
 
-            OutString((char *) chArr);
+            uiSerRecv = chArr[0];
+            btInputBuffer[iItemsInBuffer] = uiSerRecv;
+            iItemsInBuffer++;
+
+            if (iItemsInBuffer >= cBUF_SIZE) {
+                iItemsInBuffer = 0;
+            }
 
             if (iItemsInBuffer > 1) {                               /* more than one character in buffer */
 
                 if ((btInputBuffer[iItemsInBuffer - 1] == '\n') &&
                     (btInputBuffer[iItemsInBuffer - 2] == '\r')) {  /* commands end with \r\n characters */
-
+                    OutString("Command found");
+                    OutString(btInputBuffer);
                     btInputBuffer[iItemsInBuffer - 2] = 0;          /* remove \r character from the end of command */
                     iItemsInBuffer = 0;
 
@@ -645,49 +649,7 @@ void main(void)
         oJoyState = TFT_V2_Shield_JOY_GetState();
 #endif
 
-        switch( oJoyState )
-        {
-            default:
-            case JOY_NONE:
-                break;
 
-            case JOY_SEL: {
-                OutString("EVENT:JOY_SEL\r\n");
-                BSP_LED_Toggle(LED2);
-            }   break;
-
-            case JOY_DOWN:
-                OutString("EVENT:JOY_DOWN\r\n");
-                break;
-
-            case JOY_LEFT:
-                OutString("EVENT:JOY_LEFT\r\n");
-                break;
-
-            case JOY_RIGHT:
-                OutString("EVENT:JOY_RIGHT\r\n");
-                break;
-
-            case JOY_UP:
-                OutString("EVENT:JOY_UP\r\n");
-                break;
-
-        } // end switch( oJoyState )
-
-        if (uiSerRecv == 0xD)   // if enter pressed from serial terminal
-        {
-            memset (btInputBuffer , '\0', sizeof(btInputBuffer));           // clear printing buffer
-
-            int iResult;
-            char chArrTmpData[] = "DRAW:CLEAR";
-
-            uiSerRecv = 13; // 13 is ascii enter
-            iResult = strstr(chArrTmpData, "DRAW:CLEAR"); // returns pointer to beginning of substring found, else NULL
-            if (iResult) // if not NULL
-            {
-                BSP_LCD_Clear(LCD_COLOR_WHITE);     // clear LCD
-            }
-        } // END enter pressed case
 
     } // END while(1)
 } // END main
