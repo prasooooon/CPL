@@ -321,7 +321,6 @@ static ShieldStatus TFT_V2_ShieldDetect(void)
     uint8_t status = 0;
     uint32_t timeout = 200;
 
-
     i2c_d[0] = 0x00;
     i2c_d[1] = 0x7F;
     i2c_d[2] = 0xFF;
@@ -336,7 +335,6 @@ static ShieldStatus TFT_V2_ShieldDetect(void)
     }
 
     return SHIELD_DETECTED;
-
 }
 
 
@@ -507,7 +505,9 @@ static void TFT_V2_ShiedInit(void)
 }
 
 void OutString(char *s)
-{ HAL_UART_Transmit( &hUART2, (uint8_t*)s, strlen(s), 0xFFFF); }
+{
+    HAL_UART_Transmit( &hUART2, (uint8_t*)s, strlen(s), 5000);
+}
 
 #define TFTSHIELD_VERSION 2
 
@@ -603,44 +603,43 @@ void main(void)
 //    BSP_LCD_DrawLine( 10, 10, 128-10, 10 );
 //    BSP_LCD_SetFont( &Font8 );
 //    BSP_LCD_SetTextColor( LCD_COLOR_RED );
-//    BSP_LCD_DisplayStringAtLine( 1, (uint8_t *)" Welcome to Nucleo! " );
+//    BSP_LCD_DisplayStringAtLine( 1, (uint8_t *)" Welcome to Nucleo!" );
 
-    char btInputBuffer[cBUF_SIZE]; // single memory block consisting of an array of 17 characters, and an array of 10 of those
+    char btInputBuffer[cBUF_SIZE];
     int iItemsInBuffer = 0;
-
     while(1) // main loop
     {
-
-        oRecvStatus = HAL_UART_Receive( &hUART2, chArr, 1, 100);    // character received
-        if( oRecvStatus == HAL_OK )
+        if ( ( oRecvStatus = HAL_UART_Receive(&hUART2, chArr, 1, 100) ) == HAL_OK )
         {
-            HAL_UART_Transmit(&hUART2, chArr, 1, 100);
+            if (chArr[0] == '\0')
+                continue;
 
-            uiSerRecv = chArr[0];
-            btInputBuffer[iItemsInBuffer] = uiSerRecv;
-            iItemsInBuffer++;
+            btInputBuffer[iItemsInBuffer] = (char) chArr[0];
+            iItemsInBuffer++ ;
+
+            if (iItemsInBuffer >= 2 &&
+                btInputBuffer[iItemsInBuffer - 2] == '\r'
+                && btInputBuffer[iItemsInBuffer - 1] == '\n')
+            {       // Command detected
+
+                btInputBuffer[iItemsInBuffer - 2] = 0;
+                iItemsInBuffer = 0;
+
+                if (strstr(btInputBuffer, "*IDN?") != NULL)
+                {
+                    OutString("This program was written by Prasoon Dwivedi and is being run on a Nucleo-F446RE.\r\n");
+                }
+                else if (strstr(btInputBuffer, "more command") != NULL)
+                {
+                    OutString ("Wrong command.\r\n");
+                }
+
+            }//END command detected
 
             if (iItemsInBuffer >= cBUF_SIZE) {
                 iItemsInBuffer = 0;
             }
-
-            if (iItemsInBuffer > 1) {                               /* more than one character in buffer */
-
-                if ((btInputBuffer[iItemsInBuffer - 1] == '\n') &&
-                    (btInputBuffer[iItemsInBuffer - 2] == '\r')) {  /* commands end with \r\n characters */
-                    OutString("Command found");
-                    OutString(btInputBuffer);
-                    btInputBuffer[iItemsInBuffer - 2] = 0;          /* remove \r character from the end of command */
-                    iItemsInBuffer = 0;
-
-                    if (strcmp("*IDN?", btInputBuffer) == 0) {
-                        OutString("Identification command read\n");
-                    }
-
-                }
-            }
-        } // END if( oRecvStatus == HAL_OK )
-
+        }
         //
         // Joystick reading example
 #if (TFTSHIELD_VERSION == 1)
