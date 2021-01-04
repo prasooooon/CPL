@@ -21,13 +21,13 @@ int main (int argc, char * argv[])
         printf("-------------------------------------\n");
 
         int iRetVal = L_processIncludes(pFirstLI);
-        printf("File found %d \n", iRetVal);
+        printf("main: Files found: %d \n", iRetVal);
 
         printf("-------------------------------------\n");
         L_PrintForward( pFirstLI );
         printf("-------------------------------------\n");
-        L_PrintBackward( L_findEnd(pFirstLI) );
-        printf("-------------------------------------\n");
+//        L_PrintBackward( L_findEnd(pFirstLI) );
+//        printf("-------------------------------------\n");
 
         tListItem * pLabelLabelLeft = L_findLabel(pFirstLI, "LabelLeft" );
         printf("Label found: %s\n", pLabelLabelLeft->pLine);

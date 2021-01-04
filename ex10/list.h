@@ -12,6 +12,8 @@ typedef struct tListItem
     struct tListItem *pP;       // pointer on previous structure
     struct tListItem *pN;
 
+    pthread_mutex_t list_mutex; // coarse grain locking
+
 } tListItem;
 
 tListItem * LI_create( char * strLine );

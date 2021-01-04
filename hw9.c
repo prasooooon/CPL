@@ -5,9 +5,8 @@
 
 #include <stdbool.h>
 
-#include "serial.h"
-#include "commands.h"
-
+#include "hw9/serial.h"
+#include "hw9/commands.h"
 
 //#include <termios.h>
 #include <unistd.h>     // for STDIN_FILENO (from termios function)
@@ -20,6 +19,7 @@ char chBuffIn[cBUF_SIZE];
 
 char chBuffOut[cBUF_SIZE];
 int OUTBuffLen;
+int n;
 
 int hSerial;
 
@@ -60,18 +60,31 @@ int main (int argc, char * argv[])
 
         if (line[i] == '#') {continue;}         // if first non space character is #, then ignore line
 
+        if (line[strlen(line) - 1] == '\n')
+        {line[strlen(line) - 1] = 0;}
+
         memset(chBuffOut, '\0', cBUF_SIZE);
+        memset(&chBuffIn[0], 0, cBUF_SIZE);                          // clear all buffers
+        n = 0;
         OUTBuffLen = 0;
 
         sprintf(chBuffOut, "%s\r\n", line);
         OUTBuffLen = sizeof(chBuffOut) - 1;
         printf("line being sent: |%s| with length |%d|", chBuffOut, OUTBuffLen);
         int n_written = serial_write(hSerial, chBuffOut, OUTBuffLen);
-        usleep(500);        // preventing clock skews
+        usleep(1000 * 1000);        // preventing clock skews
 
-        memset(chBuffIn, '\0', cBUF_SIZE);                          // clear all buffers
-        int n = serial_read(hSerial, chBuffIn, sizeof(chBuffIn));
-        printf("message from nucleo: |%s| with length |%d|", chBuffIn, n);
+        if (line[strlen(line) - 1] == '?')
+        {
+            n = serial_read(hSerial, chBuffIn, sizeof(chBuffIn));
+            usleep(500*1000);
+
+            if ( n >= 2 && chBuffIn[n - 2] == '\r' && chBuffIn[n - 1] == '\n' )
+            printf("message from nucleo: |%s| with length |%d|", chBuffIn, n);
+        }
+
+        else
+        {continue;}
     }
 
     fclose(filePointer);

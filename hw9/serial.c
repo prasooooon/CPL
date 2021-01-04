@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 
 int serial_init ( char * strDevName)
 {
@@ -12,8 +13,8 @@ int serial_init ( char * strDevName)
 
     if (hSerial <= 0) /* check for opening errors */
     {
-        printf("Error from open: %s\n", strerror(errno));
-        return -1;
+        fprintf(stderr, "MAIN: Serial port error\n");
+        exit(1);
     }
 
     struct termios o_tty;                       /* structure calls information about serial port settings */

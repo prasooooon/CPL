@@ -625,14 +625,54 @@ void main(void)
                 btInputBuffer[iItemsInBuffer - 2] = 0;
                 iItemsInBuffer = 0;
 
+                BSP_LCD_DisplayStringAtLine( 1, (uint8_t *)btInputBuffer );
+
                 if (strstr(btInputBuffer, "*IDN?") != NULL)
                 {
                     OutString("This program was written by Prasoon Dwivedi and is being run on a Nucleo-F446RE.\r\n");
+                    memset(btInputBuffer, '\0', cBUF_SIZE);
+                    BSP_LCD_DisplayStringAtLine( 3, (uint8_t *)"memset invoked by idn" );
+
                 }
-                else if (strstr(btInputBuffer, "more command") != NULL)
+
+                else if (strstr(btInputBuffer, "DRAW:") != NULL)
                 {
-                    OutString ("Wrong command.\r\n");
+                    if (strstr(btInputBuffer, "DRAW:SETTEXTCOLOR") != NULL)
+                    {
+                        int ret, colourNumber;
+                        char *colour;
+                        char *colourList[] = {"LCD_COLOR_BLACK",
+                                              "LCD_COLOR_GREY",
+                                              "LCD_COLOR_BLUE",
+                                              "LCD_COLOR_RED",
+                                              "LCD_COLOR_GREEN",
+                                              "LCD_COLOR_CYAN",
+                                              "LCD_COLOR_MAGENTA",
+                                              "LCD_COLOR_YELLOW",
+                                              "LCD_COLOR_WHITE"};
+
+                        ret = sscanf(btInputBuffer, "DRAW:SETTEXTCOLOR %d", &colourNumber);
+                        colour = colourList[colourNumber - 1];
+
+                        BSP_LCD_SetTextColor( colour );
+
+                        BSP_LCD_DisplayStringAtLine( 2, (uint8_t *)colour );
+
+                        OutString("In colour case.\r\n");
+                    }
+//                    else if (strstr(btInputBuffer, "DRAW:SETTEXTCOLOR") != NULL)
+
+                    memset(btInputBuffer, '\0', cBUF_SIZE);
+                    BSP_LCD_DisplayStringAtLine( 4, (uint8_t *)"memset invoked by draw" );
                 }
+
+                else
+                {
+                    OutString ("Wrong command\r\n");
+                }
+
+                memset(btInputBuffer, '\0', cBUF_SIZE);
+                BSP_LCD_DisplayStringAtLine( 5, (uint8_t *)"memset invoked miscellaneously" );
 
             }//END command detected
 
@@ -647,8 +687,6 @@ void main(void)
 #elif (TFTSHIELD_VERSION == 2)
         oJoyState = TFT_V2_Shield_JOY_GetState();
 #endif
-
-
 
     } // END while(1)
 } // END main
