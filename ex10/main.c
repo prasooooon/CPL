@@ -31,7 +31,7 @@ int main (int argc, char * argv[])
 
         tListItem * pLabelLabelLeft = L_findLabel(pFirstLI, "LabelLeft" );
         printf("Label found: %s\n", pLabelLabelLeft->pLine);
-        printf("Label found next: %s\n", pLabelLabelLeft->pN->pLine);
+        printf("Label found next: %s\n", pLabelLabelLeft->pN->pLine);   // line after the label in main text
 
         printf("-------------------------------------\n");
 

@@ -18,6 +18,7 @@ tListItem * LI_create( char * strLine )
     {
         return NULL;
     }
+
     // assign NULL to all structure members
     (void) memset( (void *)pTmp, 0, sizeof(tListItem)); // void cast before function implies we don't need the return value of memset
     {
@@ -35,6 +36,7 @@ tListItem * LI_create( char * strLine )
         strncpy(pTmp->pLine , strLine, iSize); // last parameter is number of bytes to be copied
         pTmp->pLine[iSize - 1] = 0; //add tailing on last position
     }
+
     return pTmp;
 }
 
@@ -65,7 +67,7 @@ void L_PrintForward(tListItem * pItem)
 {
     while (pItem != NULL)
     {
-        printf("LI: %s", pItem->pLine);
+        printf("node: %s", pItem->pLine);
 
         pItem = pItem->pN;
     }
@@ -75,13 +77,17 @@ void L_PrintBackward(tListItem * pItem)
 {
     while (pItem != NULL)
     {
-        printf("LI: %s",pItem->pLine);
+        printf("node: %s",pItem->pLine);
 
         pItem = pItem->pP;
     }
 }
 
-// find end of linked list
+/*
+ * @param: node in doubly linked list
+ * @brief: find end of linked list
+ * @retval: last node
+*/
 tListItem * L_findEnd(tListItem * pItem)
 {
     if(pItem != NULL)
@@ -89,6 +95,24 @@ tListItem * L_findEnd(tListItem * pItem)
         while (pItem->pN != NULL)
         {
             pItem = pItem->pN;
+        }
+        return pItem;
+    }
+    return NULL;
+}
+
+/*
+ * @param: node in doubly linked list
+ * @brief: find beginning of linked list
+ * @retval: first node
+*/
+tListItem * L_findBeg(tListItem * pItem)
+{
+    if(pItem != NULL)
+    {
+        while (pItem->pP != NULL)
+        {
+            pItem = pItem->pP;
         }
         return pItem;
     }
@@ -123,7 +147,7 @@ tListItem * L_loadFromFile(char * strFileName)
     {
         if(len < 2) continue;       // remove newline chars but not empty lines
 
-        line[len-2] = 0;            // get rid of \r\n
+//        line[len-2] = 0;            // get rid of \r\n
 
         pNew = LI_create(line);     // create variable item in memory
 
@@ -146,7 +170,7 @@ tListItem * L_loadFromFile(char * strFileName)
 }
 /*
  * @brief: find colons and their indexes, used by processIncludes function
- * @retval:
+ * @retval: index at which colon found, else -1
 */
 int locFindColon(char * str)
 {
@@ -188,7 +212,7 @@ int L_processIncludes(tListItem * pItem)
                     char strFileName[255];
                     memset(strFileName, 0, 255);
                     strncpy(strFileName, &pItem->pLine[iFirstColon+1],iSecondColon);
-                    printf("File found %s \n", strFileName);
+//                    printf("File found %s \n", strFileName);
                     {
                         tListItem * pLocFirstLI;
                         tListItem * pLocLastLI;
@@ -221,18 +245,20 @@ int L_processIncludes(tListItem * pItem)
 }
 
 /*
- * @brief: find labels, similar to processIncludes
- * @retval:
+ * @param: first node and label to find
+ * @brief: find labels in entire list
+ * @retval: node with searched label
 */
 tListItem *L_findLabel(tListItem * pItem, char * strLabel )
 {
     if (pItem == NULL) return 0;
     while (pItem != NULL)
-    {
+    {   // scan if line contains label
         char * pIncl = strstr(pItem->pLine, "#label:");
 
         if (pIncl)
-        {
+        {   // found something like #label:LabelLeft:
+
             int iFirstColon = locFindColon(pItem->pLine);
             if (iFirstColon > 0)
             {
@@ -241,8 +267,8 @@ tListItem *L_findLabel(tListItem * pItem, char * strLabel )
                 {
                     char strLocLabel[255];
                     memset(strLocLabel, 0, 255);
-                    strncpy(strLocLabel, &pItem->pLine[iFirstColon+1],iSecondColon);
-                    printf("Label found %s \n", strLocLabel);
+                    strncpy(strLocLabel, &pItem->pLine[iFirstColon+1],iSecondColon);    // string between colons
+//                    printf("Label found %s \n", strLocLabel);
 
                     if (strcmp(strLocLabel, strLabel) == 0)
                     {

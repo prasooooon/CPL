@@ -25,10 +25,14 @@ void L_PrintForward(tListItem * pItem);
 void L_PrintBackward(tListItem * pItem);
 
 tListItem * L_findEnd(tListItem * pItem);
+tListItem * L_findBeg(tListItem * pItem);
+
 tListItem * L_loadFromFile(char * strFileName);
 
 int L_processIncludes(tListItem * pItem);
 
 tListItem * L_findLabel(tListItem * pItem, char * strLabel );
+
+int locFindColon(char * str);
 
 #endif //CPL_LIST_H

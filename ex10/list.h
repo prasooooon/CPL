@@ -9,12 +9,19 @@ typedef struct tListItem
 {
     char * pLine;               // pointer on line, holds information about line
 
-    struct tListItem *pP;       // pointer on previous structure
-    struct tListItem *pN;
+    struct tListItem* pP;
+    struct tListItem* pN;
 
-    pthread_mutex_t list_mutex; // coarse grain locking
 
 } tListItem;
+
+//struct tListItem* XOR (struct tListItem *a, struct tListItem *b);
+
+//void insert(struct tListItem **head_ref, char *data);
+
+//void printList (struct tListItem * head);
+
+
 
 tListItem * LI_create( char * strLine );
 

@@ -518,6 +518,7 @@ void OutString(char *s)
   */
 
 #define cBUF_SIZE 255
+
 void main(void)
 {
     // timer settings
@@ -625,45 +626,133 @@ void main(void)
                 btInputBuffer[iItemsInBuffer - 2] = 0;
                 iItemsInBuffer = 0;
 
-                BSP_LCD_DisplayStringAtLine( 1, (uint8_t *)btInputBuffer );
-
                 if (strstr(btInputBuffer, "*IDN?") != NULL)
                 {
-                    OutString("This program was written by Prasoon Dwivedi and is being run on a Nucleo-F446RE.\r\n");
+                    OutString("This program was written by Prasoon Dwivedi and is running on a Nucleo-F446RE.\r\n");
                     memset(btInputBuffer, '\0', cBUF_SIZE);
-                    BSP_LCD_DisplayStringAtLine( 3, (uint8_t *)"memset invoked by idn" );
-
                 }
 
                 else if (strstr(btInputBuffer, "DRAW:") != NULL)
                 {
+                    int ret, colourNumber;
+                    char *colour;
+                    char *colourList[] = {"LCD_COLOR_BLACK",
+                                          "LCD_COLOR_GREY",
+                                          "LCD_COLOR_BLUE",
+                                          "LCD_COLOR_RED",
+                                          "LCD_COLOR_GREEN",
+                                          "LCD_COLOR_CYAN",
+                                          "LCD_COLOR_MAGENTA",
+                                          "LCD_COLOR_YELLOW",
+                                          "LCD_COLOR_WHITE"};
+
+                    char *alignList[] = {"CENTER_MODE",
+                                         "RIGHT_MODE",
+                                         "LEFT_MODE"};
+                    char *alignMode;
+
                     if (strstr(btInputBuffer, "DRAW:SETTEXTCOLOR") != NULL)
                     {
-                        int ret, colourNumber;
-                        char *colour;
-                        char *colourList[] = {"LCD_COLOR_BLACK",
-                                              "LCD_COLOR_GREY",
-                                              "LCD_COLOR_BLUE",
-                                              "LCD_COLOR_RED",
-                                              "LCD_COLOR_GREEN",
-                                              "LCD_COLOR_CYAN",
-                                              "LCD_COLOR_MAGENTA",
-                                              "LCD_COLOR_YELLOW",
-                                              "LCD_COLOR_WHITE"};
-
                         ret = sscanf(btInputBuffer, "DRAW:SETTEXTCOLOR %d", &colourNumber);
                         colour = colourList[colourNumber - 1];
 
                         BSP_LCD_SetTextColor( colour );
-
-                        BSP_LCD_DisplayStringAtLine( 2, (uint8_t *)colour );
-
-                        OutString("In colour case.\r\n");
                     }
-//                    else if (strstr(btInputBuffer, "DRAW:SETTEXTCOLOR") != NULL)
+                    else if (strstr(btInputBuffer, "DRAW:CLEAR") != NULL)
+                    {
+                        ret = sscanf(btInputBuffer, "DRAW:CLEAR %d", &colourNumber);
+                        colour = colourList[colourNumber - 1];
+
+                        BSP_LCD_Clear( colour );
+                    }
+                    else if (strstr(btInputBuffer, "DRAW:PIXEL") != NULL)
+                    {
+                        int iX, iY;
+                        ret = sscanf(btInputBuffer, "DRAW:PIXEL %d,%d,%d", &iX, &iY, &colourNumber);
+                        colour = colourList[colourNumber - 1];
+
+                        BSP_LCD_DrawPixel(iX, iY, colour);
+                    }
+
+                    else if (strstr(btInputBuffer, "DRAW:LINE") != NULL)
+                    {
+                        int iX1, iY1, iX2, iY2;
+                        ret = sscanf(btInputBuffer, "DRAW:LINE %d,%d,%d,%d", &iX1, &iY1, &iX2, &iY2);
+
+                        BSP_LCD_DrawLine(iX1, iY1, iX2, iY2);
+                    }
+
+                    else if (strstr(btInputBuffer, "DRAW:LINE") != NULL)
+                    {
+                        uint16_t iX, iY, iRad;
+                        ret = sscanf(btInputBuffer, "DRAW:CIRCLE %d,%d,%d", &iX, &iY, &iRad);
+
+                        BSP_LCD_DrawCircle(iX, iY, iRad);
+                    }
+
+                    else if (strstr(btInputBuffer, "DRAW:SETFONT") != NULL)
+                    {
+                        int fontSize;
+                        ret = sscanf(btInputBuffer, "DRAW:SETFONT %d", &fontSize);
+
+                        if (fontSize == 8)
+                        { BSP_LCD_SetFont( &Font8); }
+
+                        else if (fontSize == 12)
+                        { BSP_LCD_SetFont( &Font12); }
+
+                        else if (fontSize == 16)
+                        { BSP_LCD_SetFont( &Font16); }
+
+                        else if (fontSize == 20)
+                        { BSP_LCD_SetFont( &Font20); }
+
+                        else if (fontSize == 24)
+                        { BSP_LCD_SetFont( &Font24); }
+
+                        // font isn't valid otherwise, so don't change it
+                    }
+
+                    else if (strstr(btInputBuffer, "DRAW:TEXT") != NULL)
+                    {
+                        uint16_t iX, iY;
+                        char *stringToPrint;
+//                        char *tempStringToPrint;
+
+                        ret = sscanf(btInputBuffer, "DRAW:TEXT %d,%d,%s,%d", &iX, &iY, stringToPrint, &alignMode);
+
+//                        int iCnt, comma, secondComma, thirdComma = 0;
+//                        while (btInputBuffer[iCnt] != 0)
+//                        {
+//                            if (btInputBuffer[iCnt] == ',')
+//                            {
+//                                comma ++;
+//
+//                                if (comma == 3)
+//                                {
+//                                    secondComma = iCnt;
+//                                }
+//
+//                                if (comma == 3)
+//                                {
+//                                    thirdComma = iCnt;
+//                                }
+//                            }
+//                            iCnt ++;
+//                        }
+//                        strncpy(tempStringToPrint, btInputBuffer[secondComma + 1], thirdComma - secondComma + 1);
+                        if (alignMode == 1) {
+                            BSP_LCD_DisplayStringAt(iX, iY, (uint8_t *) stringToPrint, CENTER_MODE);
+                        }
+                        if (alignMode == 2) {
+                            BSP_LCD_DisplayStringAt(iX, iY, (uint8_t *) stringToPrint, RIGHT_MODE);
+                        }
+                        if (alignMode == 3) {
+                            BSP_LCD_DisplayStringAt(iX, iY, (uint8_t *) stringToPrint, LEFT_MODE);
+                        }
+                    }
 
                     memset(btInputBuffer, '\0', cBUF_SIZE);
-                    BSP_LCD_DisplayStringAtLine( 4, (uint8_t *)"memset invoked by draw" );
                 }
 
                 else
@@ -672,8 +761,6 @@ void main(void)
                 }
 
                 memset(btInputBuffer, '\0', cBUF_SIZE);
-                BSP_LCD_DisplayStringAtLine( 5, (uint8_t *)"memset invoked miscellaneously" );
-
             }//END command detected
 
             if (iItemsInBuffer >= cBUF_SIZE) {
